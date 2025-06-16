@@ -38,7 +38,7 @@ app.get("/api/produk", async (req, res) => {
 app.post("/api/buat-transaksi", async (req, res) => {
   try {
     const order_id = "PMAX-" + Date.now();
-    const { produkId, customerDetails } = req.body; 
+    const { produkId, customerDetails } = req.body;
 
     const produk = await prisma.produk.findUnique({
       where: { id: parseInt(produkId) },
@@ -64,7 +64,13 @@ app.post("/api/buat-transaksi", async (req, res) => {
 
     const transaction = await snap.createTransaction(parameter);
     console.log(`Transaksi baru dibuat dengan Order ID: ${order_id}`);
-    res.status(200).json({ payment_url: transaction.redirect_url, token: transaction.token, order_id: order_id });
+    res
+      .status(200)
+      .json({
+        payment_url: transaction.redirect_url,
+        token: transaction.token,
+        order_id: order_id,
+      });
   } catch (error) {
     console.error("Gagal membuat transaksi:", error.message);
     res.status(500).json({ message: "Gagal memproses pembayaran." });
