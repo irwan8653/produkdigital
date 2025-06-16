@@ -4,35 +4,26 @@ const { PrismaClient } = require("@prisma/client");
 const midtransClient = require("midtrans-client");
 
 const app = express();
-// PORT akan diambil dari environment variable yang diberikan Vercel
-const PORT = process.env.PORT || 3000;
 const prisma = new PrismaClient();
 
-// Konfigurasi CORS yang lebih aman untuk produksi
-// Ganti 'https://URL_FRONTEND_ANDA.com' dengan URL frontend Anda nanti
-const corsOptions = {
-  origin: [
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-    "https://URL_FRONTEND_ANDA.com",
-  ],
-};
-app.use(cors(corsOptions));
+// Konfigurasi CORS agar frontend Anda diizinkan
+app.use(cors());
 app.use(express.json());
 
 // Inisialisasi Midtrans dari Environment Variables (Lebih Aman)
+// Kunci Anda tidak hilang, tapi akan dimasukkan di pengaturan Vercel
 const snap = new midtransClient.Snap({
   isProduction: false,
   serverKey: process.env.MIDTRANS_SERVER_KEY,
   clientKey: process.env.MIDTRANS_CLIENT_KEY,
 });
 
-// Rute dasar
+// Rute dasar untuk cek server
 app.get("/", (req, res) => {
-  res.send("Server backend Toko Digital berjalan di Vercel.");
+  res.send("Server backend P.MAX berjalan di Vercel.");
 });
 
-// Rute Produk
+// Rute untuk mendapatkan semua produk
 app.get("/api/produk", async (req, res) => {
   try {
     const produk = await prisma.produk.findMany();
@@ -43,11 +34,11 @@ app.get("/api/produk", async (req, res) => {
   }
 });
 
-// Rute Transaksi
+// Rute untuk membuat transaksi pembayaran
 app.post("/api/buat-transaksi", async (req, res) => {
   try {
-    const order_id = "TRANSAKSI-" + Date.now();
-    const { produkId, customerDetails } = req.body; // Ambil detail pelanggan dari frontend
+    const order_id = "PMAX-" + Date.now();
+    const { produkId, customerDetails } = req.body; 
 
     const produk = await prisma.produk.findUnique({
       where: { id: parseInt(produkId) },
@@ -57,7 +48,7 @@ app.post("/api/buat-transaksi", async (req, res) => {
       return res.status(404).json({ message: "Produk tidak ditemukan" });
     }
 
-    const hargaAngka = parseInt(produk.harga.replace(/Rp|\.| /g, ""));
+    const hargaAngka = parseInt(String(produk.harga).replace(/Rp|\.| /g, ""));
 
     await prisma.pesanan.create({
       data: { order_id: order_id, status: "PENDING", total_harga: hargaAngka },
@@ -68,31 +59,17 @@ app.post("/api/buat-transaksi", async (req, res) => {
       item_details: [
         { id: produk.id, price: hargaAngka, quantity: 1, name: produk.nama },
       ],
-      // Gunakan detail pelanggan dari frontend
-      customer_details: customerDetails || {
-        first_name: "Pelanggan",
-        email: "pelanggan@example.com",
-      },
+      customer_details: customerDetails,
     };
 
     const transaction = await snap.createTransaction(parameter);
     console.log(`Transaksi baru dibuat dengan Order ID: ${order_id}`);
-    res
-      .status(200)
-      .json({ payment_url: transaction.redirect_url, order_id: order_id });
+    res.status(200).json({ payment_url: transaction.redirect_url, token: transaction.token, order_id: order_id });
   } catch (error) {
     console.error("Gagal membuat transaksi:", error.message);
     res.status(500).json({ message: "Gagal memproses pembayaran." });
   }
 });
 
-// HAPUS BAGIAN app.listen() KARENA VERCEL MENANGANINYA SECARA OTOMATIS
-/*
-app.listen(PORT, () => {
-  console.log(`Server berhasil dimulai di http://localhost:${PORT}`);
-});
-*/
-
-// TAMBAHKAN INI DI BARIS PALING BAWAH
-// Ini memberitahu Vercel cara menggunakan server Express Anda
+// Ekspor aplikasi untuk Vercel (ini wajib)
 module.exports = app;
