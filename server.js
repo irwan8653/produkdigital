@@ -64,18 +64,20 @@ app.post("/api/buat-transaksi", async (req, res) => {
 
     const transaction = await snap.createTransaction(parameter);
     console.log(`Transaksi baru dibuat dengan Order ID: ${order_id}`);
-    res
-      .status(200)
-      .json({
-        payment_url: transaction.redirect_url,
-        token: transaction.token,
-        order_id: order_id,
-      });
+    res.status(200).json({
+      payment_url: transaction.redirect_url,
+      token: transaction.token,
+      order_id: order_id,
+    });
   } catch (error) {
     console.error("Gagal membuat transaksi:", error.message);
     res.status(500).json({ message: "Gagal memproses pembayaran." });
   }
 });
 
-// Ekspor aplikasi untuk Vercel (ini wajib)
-module.exports = app;
+// Pastikan bagian bawah server.js Anda seperti ini
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server berhasil dimulai di port ${PORT}`);
+});
