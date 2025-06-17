@@ -6,12 +6,11 @@ const midtransClient = require("midtrans-client");
 const app = express();
 const prisma = new PrismaClient();
 
-// Konfigurasi CORS agar frontend Anda diizinkan
+// Konfigurasi CORS
 app.use(cors());
 app.use(express.json());
 
-// Inisialisasi Midtrans dari Environment Variables (Lebih Aman)
-// Kunci Anda tidak hilang, tapi akan dimasukkan di pengaturan Vercel
+// Inisialisasi Midtrans Snap
 const snap = new midtransClient.Snap({
   isProduction: false,
   serverKey: process.env.MIDTRANS_SERVER_KEY,
@@ -20,7 +19,7 @@ const snap = new midtransClient.Snap({
 
 // Rute dasar untuk cek server
 app.get("/", (req, res) => {
-  res.send("Server backend P.MAX berjalan di Vercel.");
+  res.send("Server backend P.MAX berjalan.");
 });
 
 // Rute untuk mendapatkan semua produk
@@ -34,50 +33,89 @@ app.get("/api/produk", async (req, res) => {
   }
 });
 
-// Rute untuk membuat transaksi pembayaran
+// Rute untuk membuat transaksi pembayaran (LOGIKA DIPERBARUI)
 app.post("/create-transaction", async (req, res) => {
   try {
-    const order_id = "PMAX-" + Date.now();
-    const { produkId, customerDetails } = req.body;
+    const { items, customerDetails } = req.body;
 
-    const produk = await prisma.produk.findUnique({
-      where: { id: parseInt(produkId) },
-    });
-
-    if (!produk) {
-      return res.status(404).json({ message: "Produk tidak ditemukan" });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Keranjang belanja kosong atau tidak valid." });
     }
 
-    const hargaAngka = parseInt(String(produk.harga).replace(/Rp|\.| /g, ""));
+    // Ambil semua ID produk dari keranjang
+    const productIds = items.map((item) => item.id);
+
+    // Ambil semua data produk dari database dalam satu query
+    const productsFromDb = await prisma.produk.findMany({
+      where: {
+        id: { in: productIds },
+      },
+    });
+
+    // Buat map untuk pencarian cepat
+    const productMap = new Map(productsFromDb.map((p) => [p.id, p]));
+
+    let gross_amount = 0;
+    const item_details = items.map((cartItem) => {
+      const productData = productMap.get(cartItem.id);
+
+      if (!productData) {
+        throw new Error(
+          `Produk dengan ID ${cartItem.id} tidak ditemukan di database.`
+        );
+      }
+
+      // Verifikasi harga di sisi server
+      const subtotal = productData.harga * cartItem.quantity;
+      gross_amount += subtotal;
+
+      return {
+        id: productData.id,
+        price: productData.harga,
+        quantity: cartItem.quantity,
+        name: productData.nama,
+      };
+    });
+
+    // Pastikan total harga valid
+    if (gross_amount <= 0) {
+      return res.status(400).json({ error: "Total harga tidak valid." });
+    }
+
+    const order_id = "PMAX-" + Date.now();
 
     await prisma.pesanan.create({
-      data: { order_id: order_id, status: "PENDING", total_harga: hargaAngka },
+      data: {
+        order_id: order_id,
+        status: "PENDING",
+        total_harga: gross_amount,
+      },
     });
 
     const parameter = {
-      transaction_details: { order_id: order_id, gross_amount: hargaAngka },
-      item_details: [
-        { id: produk.id, price: hargaAngka, quantity: 1, name: produk.nama },
-      ],
+      transaction_details: {
+        order_id: order_id,
+        gross_amount: gross_amount,
+      },
+      item_details: item_details,
       customer_details: customerDetails,
     };
 
     const transaction = await snap.createTransaction(parameter);
     console.log(`Transaksi baru dibuat dengan Order ID: ${order_id}`);
-    res.status(200).json({
-      payment_url: transaction.redirect_url,
-      token: transaction.token,
-      order_id: order_id,
-    });
+    res.status(200).json(transaction);
   } catch (error) {
-    console.error("Gagal membuat transaksi:", error.message);
-    res.status(500).json({ message: "Gagal memproses pembayaran." });
+    console.error("Gagal membuat transaksi:", error);
+    res
+      .status(500)
+      .json({ error: "Gagal memproses pembayaran: " + error.message });
   }
 });
 
-// Pastikan bagian bawah server.js Anda seperti ini
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log(`Server berhasil dimulai di port ${PORT}`);
 });
+
