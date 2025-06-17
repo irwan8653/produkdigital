@@ -4,8 +4,8 @@
   "description": "Backend untuk toko digital",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "build": "prisma generate && prisma migrate deploy",
+    "start": "prisma migrate deploy && node server.js",
+    "build": "prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
