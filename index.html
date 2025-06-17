@@ -1191,14 +1191,8 @@
 
             button.classList.add("loading");
 
-            const totalAmount = cart.reduce((sum, item) => {
-              const product = products.find((p) => p.id === item.id);
-              return sum + product.price * item.quantity;
-            }, 0);
-
             const orderData = {
-              orderId: "ORDER-" + new Date().getTime(),
-              totalAmount: totalAmount,
+              items: cart,
               customerDetails: {
                 name: currentUser.name,
                 email: currentUser.email,
