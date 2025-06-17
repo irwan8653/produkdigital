@@ -35,7 +35,7 @@ app.get("/api/produk", async (req, res) => {
 });
 
 // Rute untuk membuat transaksi pembayaran
-app.post("/api/buat-transaksi", async (req, res) => {
+app.post("/create-transaction", async (req, res) => {
   try {
     const order_id = "PMAX-" + Date.now();
     const { produkId, customerDetails } = req.body;
