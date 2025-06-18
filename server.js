@@ -1,16 +1,16 @@
 const express = require("express");
-const cors = require("cors");
+const cors = require("cors"); // 1. PASTIKAN BARIS INI ADA
 const { PrismaClient } = require("@prisma/client");
 const midtransClient = require("midtrans-client");
 
 const app = express();
 const prisma = new PrismaClient();
 
-// Konfigurasi CORS
-app.use(cors());
+// --- PENGATURAN PENTING ---
+app.use(cors()); // 2. PASTIKAN BARIS INI ADA SEBELUM RUTE LAINNYA
 app.use(express.json());
 
-// Inisialisasi Midtrans Snap
+// Inisialisasi Midtrans Snap dari Environment Variables
 const snap = new midtransClient.Snap({
   isProduction: false,
   serverKey: process.env.MIDTRANS_SERVER_KEY,
@@ -33,7 +33,7 @@ app.get("/api/produk", async (req, res) => {
   }
 });
 
-// Rute untuk membuat transaksi pembayaran (LOGIKA DIPERBARUI)
+// Rute untuk membuat transaksi pembayaran
 app.post("/create-transaction", async (req, res) => {
   try {
     const { items, customerDetails } = req.body;
@@ -44,17 +44,14 @@ app.post("/create-transaction", async (req, res) => {
         .json({ error: "Keranjang belanja kosong atau tidak valid." });
     }
 
-    // Ambil semua ID produk dari keranjang
     const productIds = items.map((item) => item.id);
 
-    // Ambil semua data produk dari database dalam satu query
     const productsFromDb = await prisma.produk.findMany({
       where: {
         id: { in: productIds },
       },
     });
 
-    // Buat map untuk pencarian cepat
     const productMap = new Map(productsFromDb.map((p) => [p.id, p]));
 
     let gross_amount = 0;
@@ -67,7 +64,6 @@ app.post("/create-transaction", async (req, res) => {
         );
       }
 
-      // Verifikasi harga di sisi server
       const subtotal = productData.harga * cartItem.quantity;
       gross_amount += subtotal;
 
@@ -79,7 +75,6 @@ app.post("/create-transaction", async (req, res) => {
       };
     });
 
-    // Pastikan total harga valid
     if (gross_amount <= 0) {
       return res.status(400).json({ error: "Total harga tidak valid." });
     }
