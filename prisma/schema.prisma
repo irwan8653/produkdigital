@@ -14,13 +14,13 @@ datasource db {
 
 // Model untuk tabel Produk
 model Produk {
-  id               Int      @id @default(autoincrement())
-  nama             String
-  harga            String
-  kategori         String
-  gambar           String
-  deskripsiLengkap String   @map("deskripsi_lengkap") // Nama kolom di DB
-  createdAt        DateTime @default(now()) @map("created_at")
+  id        Int      @id @default(autoincrement())
+  nama      String
+  harga     Int      // DIUBAH: dari String menjadi Int, ini sangat penting
+  kategori  String
+  gambar    String
+  deskripsi String   // DIUBAH: dari deskripsiLengkap menjadi deskripsi
+  createdAt DateTime @default(now()) @map("created_at")
 }
 
 // Model untuk tabel Pesanan (Order)
