@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Mendefinisikan generator untuk Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Mendefinisikan koneksi ke database Anda
+datasource db {
+  provider = "postgresql" // Kita menggunakan PostgreSQL
+  url      = env("DATABASE_URL") // URL koneksi akan diambil dari Environment Variable
+}
+
+// Model untuk tabel Produk
+model Produk {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  harga     Int      // DIUBAH: dari String menjadi Int, ini sangat penting
+  kategori  String
+  gambar    String
+  deskripsi String   // DIUBAH: dari deskripsiLengkap menjadi deskripsi
+  createdAt DateTime @default(now()) @map("created_at")
+}
+
+// Model untuk tabel Pesanan (Order)
+model Pesanan {
+  id          Int      @id @default(autoincrement())
+  order_id    String   @unique
+  status      String
+  total_harga Int
+  createdAt   DateTime @default(now()) @map("created_at")
+}
