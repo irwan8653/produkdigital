@@ -1,7 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-// Data produk ini diambil dari file index.html Anda agar konsisten
 const initialProducts = [
   {
     id: 1,
@@ -68,30 +67,24 @@ const initialProducts = [
 async function main() {
   console.log("Memulai proses seeding...");
 
-  // Cek apakah tabel produk sudah ada isinya atau belum
   const productCount = await prisma.produk.count();
-
-  // Jika kosong, baru masukkan data awal
   if (productCount === 0) {
     console.log("Tabel produk kosong, memasukkan data awal...");
     await prisma.produk.createMany({
       data: initialProducts,
-      skipDuplicates: true, // Opsi untuk melewati jika ada data duplikat (untuk keamanan)
+      skipDuplicates: true,
     });
     console.log("Seeding selesai.");
   } else {
-    // Jika sudah ada isinya, lewati proses seeding
     console.log("Tabel produk sudah berisi data, seeding dilewati.");
   }
 }
 
-// Menjalankan fungsi main dan menangani error jika ada
 main()
   .catch((e) => {
     console.error(e);
     process.exit(1);
   })
   .finally(async () => {
-    // Selalu tutup koneksi ke database setelah selesai
     await prisma.$disconnect();
   });
