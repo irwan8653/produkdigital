@@ -6,9 +6,16 @@ const midtransClient = require("midtrans-client");
 const app = express();
 const prisma = new PrismaClient();
 
+<<<<<<< HEAD
 // --- Middleware ---
 app.use(cors());
 app.use(express.json());
+=======
+// --- MENGIZINKAN KONEKSI DARI SEMUA DOMAIN ---
+app.use(cors());
+app.use(express.json());
+// -----------------------------------------
+>>>>>>> 2007aae6dbd80b3efdeb104580e3ff8669b0b2aa
 
 // --- Inisialisasi Midtrans ---
 const snap = new midtransClient.Snap({
