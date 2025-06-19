@@ -4,9 +4,9 @@
   "description": "Backend untuk toko digital",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "vercel-build": "npx prisma migrate deploy"
+    "start": "prisma migrate deploy && node prisma/seed.js && node server.js",
+    "build": "prisma generate",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",

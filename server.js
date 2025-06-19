@@ -6,11 +6,11 @@ const midtransClient = require("midtrans-client");
 const app = express();
 const prisma = new PrismaClient();
 
-// Konfigurasi CORS
+// Konfigurasi CORS agar frontend Anda diizinkan
 app.use(cors());
 app.use(express.json());
 
-// Inisialisasi Midtrans Snap
+// Inisialisasi Midtrans Snap dari Environment Variables
 const snap = new midtransClient.Snap({
   isProduction: false,
   serverKey: process.env.MIDTRANS_SERVER_KEY,
@@ -33,7 +33,7 @@ app.get("/api/produk", async (req, res) => {
   }
 });
 
-// Rute untuk membuat transaksi pembayaran (LOGIKA DIPERBARUI)
+// Rute untuk membuat transaksi pembayaran
 app.post("/create-transaction", async (req, res) => {
   try {
     const { items, customerDetails } = req.body;
