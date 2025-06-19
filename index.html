@@ -1,22 +1,18 @@
 <!DOCTYPE html>
 <html lang="id" class="dark">
-  <!-- Default ke mode gelap -->
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Toko Digital Irwan</title>
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Midtrans Snap.js -->
     <script
       type="text/javascript"
       src="https://app.sandbox.midtrans.com/snap/snap.js"
       data-client-key="SB-Mid-client-4DopQX7BRxkZHWGe"
     ></script>
 
-    <!-- Font Google: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -24,7 +20,6 @@
       rel="stylesheet"
     />
 
-    <!-- Konfigurasi Kustom Tailwind & Styling Dasar -->
     <script>
       tailwind.config = {
         darkMode: "class",
@@ -56,7 +51,6 @@
   <body
     class="bg-light-bg dark:bg-dark-bg text-gray-800 dark:text-gray-200 antialiased"
   >
-    <!-- Header -->
     <header
       class="bg-light-card/80 dark:bg-dark-card/80 backdrop-blur-lg sticky top-0 z-40"
     >
@@ -99,9 +93,7 @@
       </div>
     </header>
 
-    <!-- Kontainer Utama -->
     <div class="container mx-auto max-w-7xl px-4 py-8 md:py-12">
-      <!-- Hero Section -->
       <section
         class="text-center bg-light-card dark:bg-dark-card p-8 md:p-12 rounded-2xl mb-12"
       >
@@ -116,16 +108,12 @@
         </p>
       </section>
 
-      <!-- Grid Produk -->
       <main
         id="productList"
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-      >
-        <!-- Kartu Produk akan dimuat di sini oleh JavaScript -->
-      </main>
+      ></main>
     </div>
 
-    <!-- Modal Pembelian -->
     <div
       id="purchaseModal"
       class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50"
@@ -232,53 +220,21 @@
       </div>
     </div>
 
-    <!-- Script Utama -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        // --- DATA PRODUK DIGITAL ANDA (TAMBAHKAN URL GAMBAR) ---
-        const products = [
-          {
-            id: 101,
-            title: "E-book Panduan Web Development 2025",
-            description:
-              "Pelajari teknologi web terbaru dari dasar hingga mahir.",
-            price: 75000,
-            image:
-              "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=400",
-          },
-          {
-            id: 102,
-            title: "Template Desain Grafis Premium",
-            description: "Koleksi template untuk Figma & Canva.",
-            price: 125000,
-            image:
-              "https://images.unsplash.com/photo-1626785774573-4b799315345d?q=80&w=400",
-          },
-          {
-            id: 103,
-            title: "Video Tutorial Editing Foto",
-            description: "Rahasia editing foto profesional dengan Lightroom.",
-            price: 99000,
-            image:
-              "https://images.unsplash.com/photo-1558362035-2b94155da0ae?q=80&w=400",
-          },
-          {
-            id: 104,
-            title: "Akses Grup Mentoring Eksklusif",
-            description: "Langganan 1 bulan untuk grup diskusi dan mentoring.",
-            price: 250000,
-            image:
-              "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=400",
-          },
-        ];
+        // Variabel Global
+        const API_BASE_URL = "https://produkdigital-production.up.railway.app";
+        const API_URL = `${API_BASE_URL}/api/products`;
+        let products = []; // Array ini sekarang akan diisi dari API
+        let selectedProduct = null;
 
+        // Elemen DOM
         const productListEl = document.getElementById("productList");
         const modalEl = document.getElementById("purchaseModal");
         const closeModalBtn = document.getElementById("closeModalBtn");
         const customerForm = document.getElementById("customerForm");
-        let selectedProduct = null;
 
-        // Logika Mode Gelap/Terang
+        // --- LOGIKA MODE GELAP/TERANG ---
         const themeToggleBtn = document.getElementById("theme-toggle");
         const themeToggleDarkIcon = document.getElementById(
           "theme-toggle-dark-icon"
@@ -287,27 +243,32 @@
           "theme-toggle-light-icon"
         );
 
-        if (
-          localStorage.getItem("color-theme") === "dark" ||
-          (!("color-theme" in localStorage) &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches)
-        ) {
-          themeToggleLightIcon.classList.remove("hidden");
-        } else {
-          themeToggleDarkIcon.classList.remove("hidden");
-        }
+        // Fungsi untuk mengatur tema berdasarkan preferensi
+        const applyTheme = () => {
+          if (
+            localStorage.getItem("color-theme") === "dark" ||
+            (!("color-theme" in localStorage) &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+          ) {
+            document.documentElement.classList.add("dark");
+            themeToggleLightIcon.classList.remove("hidden");
+            themeToggleDarkIcon.classList.add("hidden");
+          } else {
+            document.documentElement.classList.remove("dark");
+            themeToggleDarkIcon.classList.remove("hidden");
+            themeToggleLightIcon.classList.add("hidden");
+          }
+        };
 
+        // Event listener untuk tombol tema
         themeToggleBtn.addEventListener("click", function () {
-          themeToggleDarkIcon.classList.toggle("hidden");
-          themeToggleLightIcon.classList.toggle("hidden");
-          document.documentElement.classList.toggle("dark");
-          const theme = document.documentElement.classList.contains("dark")
-            ? "dark"
-            : "light";
-          localStorage.setItem("color-theme", theme);
+          const isDark = document.documentElement.classList.toggle("dark");
+          localStorage.setItem("color-theme", isDark ? "dark" : "light");
+          applyTheme();
         });
 
-        // Fungsi utilitas
+        // --- FUNGSI-FUNGSI UTAMA ---
+
         const formatRupiah = (num) =>
           new Intl.NumberFormat("id-ID", {
             style: "currency",
@@ -315,25 +276,32 @@
             minimumFractionDigits: 0,
           }).format(num);
 
-        // Render produk ke halaman
-        function renderProducts() {
+        // Fungsi render produk ke halaman
+        function renderProducts(productsToRender) {
           productListEl.innerHTML = "";
-          products.forEach((product) => {
+          if (productsToRender.length === 0) {
+            productListEl.innerHTML = `<p class="text-center text-gray-500 col-span-full">Belum ada produk untuk saat ini.</p>`;
+            return;
+          }
+          productsToRender.forEach((product) => {
+            const imageUrl = product.gambar
+              ? `${API_BASE_URL}${product.gambar}`
+              : "https://placehold.co/400x300/161B22/ffffff?text=Produk";
             const productHtml = `
-                        <div class="product-card bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col">
-                            <img src="${product.image}" alt="${
-              product.title
+                        <div class="product-card bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-2xl overflow-hidden shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                            <img src="${imageUrl}" alt="${
+              product.nama
             }" class="h-48 w-full object-cover">
                             <div class="p-6 flex flex-col flex-grow">
                                 <h3 class="font-bold text-xl mb-2 text-gray-900 dark:text-white">${
-                                  product.title
+                                  product.nama
                                 }</h3>
                                 <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">${
-                                  product.description
+                                  product.deskripsi
                                 }</p>
                                 <div class="mt-4 flex justify-between items-center">
                                     <p class="font-semibold text-xl text-brand-purple">${formatRupiah(
-                                      product.price
+                                      product.harga
                                     )}</p>
                                     <button data-id="${
                                       product.id
@@ -348,14 +316,32 @@
           });
         }
 
+        // --- PERUBAHAN UTAMA: Ambil data dari API ---
+        async function fetchAndRenderProducts() {
+          try {
+            productListEl.innerHTML = `<p class="text-center text-gray-500 col-span-full">Memuat produk...</p>`;
+            const response = await fetch(API_URL);
+            if (!response.ok)
+              throw new Error("Gagal terhubung ke server produk.");
+            products = await response.json(); // Simpan produk ke variabel global
+            renderProducts(products);
+          } catch (error) {
+            console.error("Error fetching products:", error);
+            productListEl.innerHTML = `<p class="text-center text-red-500 col-span-full">Gagal memuat produk. Coba lagi nanti.</p>`;
+          }
+        }
+
         // Logika Modal
         function openModal(product) {
           selectedProduct = product;
-          document.getElementById("modalProductImage").src = product.image;
+          const imageUrl = product.gambar
+            ? `${API_BASE_URL}${product.gambar}`
+            : "https://placehold.co/400x300/161B22/ffffff?text=Produk";
+          document.getElementById("modalProductImage").src = imageUrl;
           document.getElementById("modalProductName").textContent =
-            product.title;
+            product.nama;
           document.getElementById("modalProductPrice").textContent =
-            formatRupiah(product.price);
+            formatRupiah(product.harga);
           modalEl.classList.remove("hidden");
           setTimeout(() => {
             modalEl
@@ -371,9 +357,6 @@
           modalEl
             .querySelector(".transform")
             .classList.add("scale-95", "opacity-0");
-          modalEl
-            .querySelector(".transform")
-            .classList.remove("scale-100", "opacity-100");
           setTimeout(() => {
             modalEl.classList.add("hidden");
             customerForm.reset();
@@ -396,22 +379,19 @@
             items: [
               {
                 id: selectedProduct.id,
-                price: selectedProduct.price,
+                price: selectedProduct.harga,
                 quantity: 1,
-                name: selectedProduct.title,
+                name: selectedProduct.nama,
               },
             ],
             customerDetails: { name: customerName, email: customerEmail },
           };
 
-          fetch(
-            "https://produkdigital-production.up.railway.app/create-transaction",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(orderData),
-            }
-          )
+          fetch(`${API_BASE_URL}/create-transaction`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderData),
+          })
             .then((response) => response.json())
             .then((data) => {
               buyBtn.querySelector(".btn-text").classList.remove("hidden");
@@ -447,7 +427,7 @@
           const button = e.target.closest("button.buy-button");
           if (button) {
             const productId = parseInt(button.dataset.id);
-            const product = products.find((p) => p.id === productId);
+            const product = products.find((p) => p.id === productId); // Cari di data yg sudah di-fetch
             if (product) openModal(product);
           }
         });
@@ -456,11 +436,11 @@
         modalEl.addEventListener("click", (e) => {
           if (e.target === modalEl) closeModal();
         });
-
         customerForm.addEventListener("submit", processPayment);
 
-        // Inisialisasi
-        renderProducts();
+        // Inisialisasi Aplikasi
+        applyTheme(); // Terapkan tema
+        fetchAndRenderProducts(); // Ambil dan tampilkan produk dari API
       });
     </script>
   </body>
