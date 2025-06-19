@@ -2,8 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
 const midtransClient = require("midtrans-client");
-const multer = require("multer"); // Impor multer
-const path = require("path"); // Impor path
+const multer = require("multer");
+const path = require("path");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -12,21 +12,16 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// --- KONFIGURASI UNTUK UPLOAD GAMBAR ---
-// Menentukan lokasi penyimpanan file
+// --- Konfigurasi Upload Gambar ---
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Folder 'uploads' untuk menyimpan gambar
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    // Membuat nama file yang unik untuk menghindari duplikat
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 const upload = multer({ storage: storage });
-
-// --- MEMBUAT FOLDER 'uploads' BISA DIAKSES PUBLIK ---
-// Ini agar gambar bisa ditampilkan di frontend
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // --- Inisialisasi Midtrans ---
@@ -39,17 +34,13 @@ const snap = new midtransClient.Snap({
 // =======================================================
 // RUTE UNTUK HALAMAN TOKO PENGGUNA
 // =======================================================
-app.get("/", (req, res) => {
-  res.send("Server backend P.MAX berjalan.");
-});
+app.get("/", (req, res) => res.send("Server backend P.MAX berjalan."));
 
 app.post("/create-transaction", async (req, res) => {
-  // ... (logika ini tidak berubah)
   try {
     const { items, customerDetails } = req.body;
-    if (!items || !Array.isArray(items) || items.length === 0) {
+    if (!items || !Array.isArray(items) || items.length === 0)
       return res.status(400).json({ error: "Keranjang belanja kosong." });
-    }
     const productIds = items.map((item) => item.id);
     const productsFromDb = await prisma.produk.findMany({
       where: { id: { in: productIds } },
@@ -93,8 +84,6 @@ app.post("/create-transaction", async (req, res) => {
 // =======================================================
 // RUTE UNTUK ADMIN (API PENGELOLA PRODUK)
 // =======================================================
-
-// GET: Mengambil semua produk
 app.get("/api/products", async (req, res) => {
   try {
     const products = await prisma.produk.findMany({
@@ -108,7 +97,6 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
-// GET: Mengambil satu produk berdasarkan ID
 app.get("/api/products/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -125,13 +113,10 @@ app.get("/api/products/:id", async (req, res) => {
   }
 });
 
-// POST: Menambah produk baru dengan upload gambar
 app.post("/api/products", upload.single("gambar"), async (req, res) => {
   try {
     const { nama, deskripsi, harga, kategori } = req.body;
-    // Path ke gambar yang diupload akan disimpan di database
     const gambarPath = req.file ? `/uploads/${req.file.filename}` : null;
-
     const product = await prisma.produk.create({
       data: {
         nama,
@@ -149,22 +134,14 @@ app.post("/api/products", upload.single("gambar"), async (req, res) => {
   }
 });
 
-// PUT: Mengedit produk berdasarkan ID dengan upload gambar
 app.put("/api/products/:id", upload.single("gambar"), async (req, res) => {
   const { id } = req.params;
   try {
     const { nama, deskripsi, harga, kategori } = req.body;
-    const dataToUpdate = {
-      nama,
-      deskripsi,
-      harga: parseInt(harga),
-      kategori,
-    };
-    // Jika ada file gambar baru yang diupload, perbarui path gambarnya
+    const dataToUpdate = { nama, deskripsi, harga: parseInt(harga), kategori };
     if (req.file) {
       dataToUpdate.gambar = `/uploads/${req.file.filename}`;
     }
-
     const product = await prisma.produk.update({
       where: { id: parseInt(id) },
       data: dataToUpdate,
@@ -177,13 +154,10 @@ app.put("/api/products/:id", upload.single("gambar"), async (req, res) => {
   }
 });
 
-// DELETE: Menghapus produk berdasarkan ID
 app.delete("/api/products/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.produk.delete({
-      where: { id: parseInt(id) },
-    });
+    await prisma.produk.delete({ where: { id: parseInt(id) } });
     res.status(204).send();
   } catch (error) {
     res
@@ -192,8 +166,5 @@ app.delete("/api/products/:id", async (req, res) => {
   }
 });
 
-// --- Menjalankan Server ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server berhasil dimulai di port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server berhasil dimulai di port ${PORT}`));
