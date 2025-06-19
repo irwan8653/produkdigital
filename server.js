@@ -4,6 +4,7 @@ const { PrismaClient } = require("@prisma/client");
 const midtransClient = require("midtrans-client");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs"); // 1. Impor module 'fs' (File System)
 
 const app = express();
 const prisma = new PrismaClient();
@@ -12,17 +13,23 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
+// 2. MEMBUAT FOLDER 'uploads' JIKA BELUM ADA
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // --- Konfigurasi Upload Gambar ---
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, "uploads/"); // Simpan file di folder 'uploads'
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 const upload = multer({ storage: storage });
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(uploadsDir));
 
 // --- Inisialisasi Midtrans ---
 const snap = new midtransClient.Snap({
@@ -32,7 +39,7 @@ const snap = new midtransClient.Snap({
 });
 
 // =======================================================
-// RUTE UNTUK HALAMAN TOKO PENGGUNA
+// RUTE-RUTE API ANDA (TIDAK ADA PERUBAHAN DI BAWAH INI)
 // =======================================================
 app.get("/", (req, res) => res.send("Server backend P.MAX berjalan."));
 
@@ -81,9 +88,6 @@ app.post("/create-transaction", async (req, res) => {
   }
 });
 
-// =======================================================
-// RUTE UNTUK ADMIN (API PENGELOLA PRODUK)
-// =======================================================
 app.get("/api/products", async (req, res) => {
   try {
     const products = await prisma.produk.findMany({
