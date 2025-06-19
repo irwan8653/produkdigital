@@ -59,6 +59,9 @@ app.post("/create-transaction", async (req, res) => {
   }
 });
 
+// =======================================================
+// RUTE UNTUK ADMIN (API PENGELOLA PRODUK)
+// =======================================================
 app.get("/api/products", async (req, res) => {
     try {
         const products = await prisma.produk.findMany({ orderBy: { createdAt: 'desc' } });
@@ -66,16 +69,70 @@ app.get("/api/products", async (req, res) => {
     } catch (error) { res.status(500).json({ message: "Gagal mengambil produk.", error: error.message }); }
 });
 
-app.post("/api/products", upload.single('gambar'), async (req, res) => {
+app.get("/api/products/:id", async (req, res) => {
+    const { id } = req.params;
     try {
-        const { nama, deskripsi, harga, kategori } = req.body;
-        const gambarPath = req.file ? `/uploads/${req.file.filename}` : null;
-        const product = await prisma.produk.create({ data: { nama, deskripsi, harga: parseInt(harga), kategori, gambar: gambarPath } });
-        res.status(201).json(product);
-    } catch (error) { res.status(400).json({ message: "Gagal menambah produk.", error: error.message }); }
+        const product = await prisma.produk.findUnique({ where: { id: parseInt(id) } });
+        if (!product) return res.status(404).json({ message: "Produk tidak ditemukan." });
+        res.json(product);
+    } catch (error) { res.status(500).json({ message: "Gagal mengambil produk.", error: error.message }); }
 });
 
-// ... (rute PUT dan DELETE lainnya) ...
+// --- RUTE POST DIPERBARUI DENGAN VALIDASI ---
+app.post("/api/products", upload.single('gambar'), async (req, res) => {
+    try {
+        const { nama, deskripsi, kategori } = req.body;
+        const harga = Number(req.body.harga); // Konversi harga menjadi Angka
+
+        // Validasi data di sisi server
+        if (!nama || !deskripsi || !kategori) {
+            return res.status(400).json({ message: "Semua kolom teks wajib diisi." });
+        }
+        if (isNaN(harga) || harga <= 0) {
+            return res.status(400).json({ message: "Harga harus berupa angka positif yang valid." });
+        }
+
+        const gambarPath = req.file ? `/uploads/${req.file.filename}` : null;
+        const product = await prisma.produk.create({ data: { nama, deskripsi, harga: harga, kategori, gambar: gambarPath } });
+        res.status(201).json(product);
+    } catch (error) { 
+        console.error("Error saat menambah produk:", error);
+        res.status(400).json({ message: "Gagal menambah produk.", error: error.message }); 
+    }
+});
+
+// --- RUTE PUT DIPERBARUI DENGAN VALIDASI ---
+app.put("/api/products/:id", upload.single('gambar'), async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { nama, deskripsi, kategori } = req.body;
+        const harga = Number(req.body.harga);
+
+        // Validasi data di sisi server
+        if (!nama || !deskripsi || !kategori) {
+            return res.status(400).json({ message: "Semua kolom teks wajib diisi." });
+        }
+        if (isNaN(harga) || harga <= 0) {
+            return res.status(400).json({ message: "Harga harus berupa angka positif yang valid." });
+        }
+
+        const dataToUpdate = { nama, deskripsi, harga: harga, kategori };
+        if (req.file) { dataToUpdate.gambar = `/uploads/${req.file.filename}`; }
+        const product = await prisma.produk.update({ where: { id: parseInt(id) }, data: dataToUpdate });
+        res.json(product);
+    } catch (error) { 
+        console.error("Error saat mengedit produk:", error);
+        res.status(400).json({ message: "Gagal mengedit produk.", error: error.message }); 
+    }
+});
+
+app.delete("/api/products/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        await prisma.produk.delete({ where: { id: parseInt(id) } });
+        res.status(204).send();
+    } catch (error) { res.status(500).json({ message: "Gagal menghapus produk.", error: error.message }); }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server berhasil dimulai di port ${PORT}`));
