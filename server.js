@@ -6,17 +6,10 @@ const midtransClient = require("midtrans-client");
 const app = express();
 const prisma = new PrismaClient();
 
-<<<<<<< HEAD
 // --- MENGIZINKAN KONEKSI DARI SEMUA DOMAIN ---
 app.use(cors());
 app.use(express.json());
-// ---------------------------------------------
-=======
-// --- PENTING: MENGIZINKAN KONEKSI DARI FRONTEND ---
-app.use(cors());
-app.use(express.json());
-// ----------------------------------------------------
->>>>>>> 8acc5b544fb405b35638043f227c537692376ff1
+// -----------------------------------------
 
 // Inisialisasi Midtrans Snap
 const snap = new midtransClient.Snap({
