@@ -1,16 +1,17 @@
 const express = require("express");
-const cors = require("cors"); // 1. PASTIKAN BARIS INI ADA
+const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
 const midtransClient = require("midtrans-client");
 
 const app = express();
 const prisma = new PrismaClient();
 
-// Konfigurasi CORS agar frontend Anda diizinkan
+// --- PENTING: MENGIZINKAN KONEKSI DARI FRONTEND ---
 app.use(cors());
 app.use(express.json());
+// ----------------------------------------------------
 
-// Inisialisasi Midtrans Snap dari Environment Variables
+// Inisialisasi Midtrans Snap
 const snap = new midtransClient.Snap({
   isProduction: false,
   serverKey: process.env.MIDTRANS_SERVER_KEY,
@@ -20,17 +21,6 @@ const snap = new midtransClient.Snap({
 // Rute dasar untuk cek server
 app.get("/", (req, res) => {
   res.send("Server backend P.MAX berjalan.");
-});
-
-// Rute untuk mendapatkan semua produk
-app.get("/api/produk", async (req, res) => {
-  try {
-    const produk = await prisma.produk.findMany();
-    res.json(produk);
-  } catch (error) {
-    console.error("Gagal mengambil produk:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
 });
 
 // Rute untuk membuat transaksi pembayaran
@@ -45,28 +35,21 @@ app.post("/create-transaction", async (req, res) => {
     }
 
     const productIds = items.map((item) => item.id);
-
     const productsFromDb = await prisma.produk.findMany({
-      where: {
-        id: { in: productIds },
-      },
+      where: { id: { in: productIds } },
     });
-
     const productMap = new Map(productsFromDb.map((p) => [p.id, p]));
 
     let gross_amount = 0;
     const item_details = items.map((cartItem) => {
       const productData = productMap.get(cartItem.id);
-
       if (!productData) {
         throw new Error(
           `Produk dengan ID ${cartItem.id} tidak ditemukan di database.`
         );
       }
-
       const subtotal = productData.harga * cartItem.quantity;
       gross_amount += subtotal;
-
       return {
         id: productData.id,
         price: productData.harga,
@@ -80,7 +63,6 @@ app.post("/create-transaction", async (req, res) => {
     }
 
     const order_id = "PMAX-" + Date.now();
-
     await prisma.pesanan.create({
       data: {
         order_id: order_id,
