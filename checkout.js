@@ -39,10 +39,12 @@ buyButton.addEventListener("click", async () => {
     quantity: 1,
   };
 
-  // 2. Siapkan data pesanan untuk dikirim ke backend
   const orderData = {
-    product: productDetails,
-    customer: {
+    // 1. Ubah 'product' menjadi 'items' dan bungkus dalam array [ ]
+    items: [productDetails],
+
+    // 2. Ubah 'customer' menjadi 'customerDetails'
+    customerDetails: {
       first_name: customerName,
       email: customerEmail,
     },
