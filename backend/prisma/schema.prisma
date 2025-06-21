@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Ganti ke "postgresql" saat di production
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id             String  @id @default(cuid())
+  name           String
+  price          Int
+  imageUrl       String // URL untuk menampilkan gambar di frontend
+  productFilePath String // Path ke file produk digital di server untuk di-download
+
+  orders         Order[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  midtransOrderId String   @unique
+  customerName    String
+  customerEmail   String
+  status          String   // e.g., PENDING, SUCCESS, FAILED
+  totalAmount     Int
+  
+  product         Product  @relation(fields: [productId], references: [id])
+  productId       String
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

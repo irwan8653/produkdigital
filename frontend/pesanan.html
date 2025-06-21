@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riwayat Pesanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="bg-gray-100">
+    <nav class="bg-white shadow-md">
+      <div
+        class="container mx-auto px-6 py-3 flex justify-between items-center"
+      >
+        <a class="text-xl font-bold text-gray-800" href="/">Toko Digital</a>
+        <div>
+          <a class="px-3 py-2" href="/index.html">Toko</a>
+          <a class="px-3 py-2" href="/admin.html">Admin</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-6">Riwayat Pesanan</h1>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="py-2 px-4 border">Order ID</th>
+                <th class="py-2 px-4 border">Nama Pelanggan</th>
+                <th class="py-2 px-4 border">Email</th>
+                <th class="py-2 px-4 border">Produk</th>
+                <th class="py-2 px-4 border">Total</th>
+                <th class="py-2 px-4 border">Status</th>
+                <th class="py-2 px-4 border">Tanggal</th>
+              </tr>
+            </thead>
+            <tbody id="orderTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/pesanan.js"></script>
+  </body>
+</html>

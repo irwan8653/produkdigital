@@ -1,0 +1,12 @@
+# Folder dependensi, harus diabaikan
+node_modules
+
+# File environment, berisi semua rahasia dan password. SANGAT PENTING untuk diabaikan!
+.env
+
+# File database SQLite lokal
+prisma/dev.db
+prisma/dev.db-journal
+
+# Folder uploads lokal, tidak perlu dimasukkan ke repository
+uploads/
