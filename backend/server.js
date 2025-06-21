@@ -28,6 +28,7 @@ const allowedOrigins = [
   "http://localhost:5500", // Live Server
   "http://127.0.0.1:5500", // Live Server
   "http://localhost:3000", // npx serve
+  "https://wannabeen.netlify.app", //wannabeen
   // Tambahkan URL frontend produksi Anda di sini nanti, contoh: 'https://nama-website-anda.vercel.app'
 ];
 
