@@ -7,7 +7,7 @@
         "cmd": "npm start"
       }
     },
-    "rootDir": "/backend"
+    "rootDir": "backend"
   },
   "deploy": {
     "startCommand": "npm start",
