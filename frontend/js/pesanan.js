@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const backendUrl = "http://127.0.0.1:3000";
+  const backendUrl =
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "localhost"
+      ? "http://127.0.0.1:3000"
+      : "https://produkdigital-production.up.railway.app"; // <-- Pastikan ini URL Railway Anda
   const orderTableBody = document.getElementById("orderTableBody");
 
   const fetchOrders = async () => {
